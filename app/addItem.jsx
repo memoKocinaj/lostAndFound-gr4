@@ -142,3 +142,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 
+},
+  addButtonDisabled: {
+    backgroundColor: "#CCCCCC",
+  },
+  addButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
+  },
