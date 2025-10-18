@@ -72,7 +72,24 @@ export default function AddItemScreen() {
       },
     ]);
   };
+ return (
+    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+      <View style={styles.content}>
+        <View style={styles.formContainer}>
+          <Text style={styles.title}>Report Lost Item</Text>
 
+          <TextInput
+            placeholder="Item Name *"
+            value={itemName}
+            onChangeText={setItemName}
+            style={styles.input}
+            placeholderTextColor="#999"
+          />
+
+          <CategorySelector
+            selectedCategory={selectedCategory}
+            onCategorySelect={setSelectedCategory}
+          />
 
 
 
@@ -124,3 +141,4 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+
