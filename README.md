@@ -27,22 +27,20 @@ Struktura e aplikacionit:
 ```
 
 
+
 Aplikacioni përbëhet nga disa ekrane kryesore:
 
 - **Home (index.jsx)**  
   Ekrani kryesor; përdoruesi mund të navigojë drejt faqeve të tjera: raportimi i sendeve, sendet e gjetura, profili dhe faqja për informacion.
-
 - **AddItem (addItem.jsx)**  
   Ekran për raportimin e sendeve të humbura; përdoruesi plotëson emrin, përshkrimin, lokacionin dhe kategorinë.
-
 - **FoundItem (foundItem.jsx)**  
   Ekran për raportimin e sendeve të gjetura dhe për kërkim/filter në listë.
-
 - **Profile (profile.jsx)**  
   Menaxhimi i profileve të përdoruesve, me mundësi shtimi dhe fshirjeje.
-
 - **About (about.jsx)**  
   Përshkruan qëllimin e projektit, misionin, kategoritë dhe jep informata kontaktuese.
+
 
 
 Teknologjitë e përdorura
@@ -51,12 +49,15 @@ Teknologjitë e përdorura
 - Ionicons për ikona
 - Komponentë të personalizuar: NavBar, CategorySelector, ItemCard
 
+
 Zhvilluesit:
 - Aurela Hasanaj
 - Delvina Elshani
 - Jon Rexha
 - Leart Balidemaj
 - Mehmed Kocinaj
+
+
 
 
 
