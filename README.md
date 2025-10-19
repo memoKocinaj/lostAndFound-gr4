@@ -1,4 +1,4 @@
-Find Lost Things
+# Find Lost Things
 
 Find Lost Things është një aplikacion mobil i zhvilluar me React Native (Expo), i cili synon të ndihmojë përdoruesit të raportojnë dhe të gjejnë sende të humbura në mënyrë të shpejtë, të lehtë dhe të organizuar.
 Ky projekt synon të lehtësojë procesin e gjetjes së sendeve të humbura, duke ofruar një ndërfaqe miqësore dhe intuitive ku përdoruesit mund të raportojnë, kërkojnë dhe menaxhojnë informacionin për sendet e tyre me lehtësi.
@@ -46,9 +46,9 @@ Teknologjitë e përdorura
 - Ionicons për ikona
 - Komponentë të personalizuar: NavBar, CategorySelector, ItemCard
 
-# Udhëzime për nisjen e projektit
+Udhëzime për nisjen e projektit
 
-## Parakushtet
+# Parakushtet
 
 - Node.js i instaluar
 - Expo CLI
@@ -56,15 +56,15 @@ Teknologjitë e përdorura
 
 ---
 
-### 1. Instalo Expo CLI
+## 1. Instalo Expo CLI
 
 npm install -g expo-cli
 
-### 2. Instalo Dependencies
+## 2. Instalo Dependencies
 
 npm install
 
-### 3. Nise serverin
+## 3. Nise serverin
 
 npm install dhe skano QR-code me Expo Go
 
