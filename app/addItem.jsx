@@ -204,7 +204,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 
-},
   addButtonDisabled: {
     backgroundColor: "#CCCCCC",
   },
