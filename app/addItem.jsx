@@ -91,10 +91,72 @@ export default function AddItemScreen() {
             onCategorySelect={setSelectedCategory}
           />
 
+          <TextInput
+            placeholder="Description"
+            value={itemDescription}
+            onChangeText={setItemDescription}
+            style={[styles.input, styles.textArea]}
+            placeholderTextColor="#999"
+            multiline
+            numberOfLines={3}
+          />
 
+          <TextInput
+            placeholder="Last Seen Location"
+            value={lastSeenLocation}
+            onChangeText={setLastSeenLocation}
+            style={styles.input}
+            placeholderTextColor="#999"
+          />
 
+          <TouchableOpacity
+            style={[
+              styles.addButton,
+              (!itemName.trim() || !selectedCategory) &&
+                styles.addButtonDisabled,
+            ]}
+            onPress={addItem}
+            disabled={!itemName.trim() || !selectedCategory}
+          >
+            <Text style={styles.addButtonText}>Report Lost Item</Text>
+          </TouchableOpacity>
+        </View>
 
-  
+        <View style={styles.listHeader}>
+          <Text style={styles.listTitle}>Lost Items ({lostItems.length})</Text>
+        </View>
+
+        {lostItems.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Ionicons name="search-outline" size={64} color="#CCCCCC" />
+            <Text style={styles.emptyStateTitle}>
+              No lost items reported yet
+            </Text>
+            <Text style={styles.emptyStateText}>
+              Use the form above to report your first lost item
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={lostItems}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <ItemCard
+                item={item}
+                onDelete={() => deleteItem(item.id)}
+                type="found"
+              />
+            )}
+            showsVerticalScrollIndicator={false}
+            style={styles.list}
+          />
+        )}
+      </View>
+      <NavBar />
+    </SafeAreaView>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -151,3 +213,32 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
+ listHeader: {
+    marginBottom: 12,
+  },
+  listTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#2C3E50",
+  },
+  list: {
+    flex: 1,
+  },
+  emptyState: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 60,
+  },
+  emptyStateTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#666",
+    marginBottom: 8,
+  },
+  emptyStateText: {
+    fontSize: 14,
+    color: "#999",
+    textAlign: "center",
+  },
+});
+
