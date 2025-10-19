@@ -1,18 +1,18 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import {
-  View,
-  Text,
-  TextInput,
+  Alert,
   FlatList,
   StyleSheet,
-  Alert,
+  Text,
+  TextInput,
   TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
-import NavBar from "../components/NavBar";
 import CategorySelector from "../components/CategorySelector";
 import ItemCard from "../components/ItemCard";
+import NavBar from "../components/NavBar";
 
 export default function AddItemScreen() {
   const [itemName, setItemName] = useState("");
@@ -72,7 +72,7 @@ export default function AddItemScreen() {
       },
     ]);
   };
- return (
+  return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
       <View style={styles.content}>
         <View style={styles.formContainer}>
@@ -144,7 +144,7 @@ export default function AddItemScreen() {
               <ItemCard
                 item={item}
                 onDelete={() => deleteItem(item.id)}
-                type="found"
+                type="lost"
               />
             )}
             showsVerticalScrollIndicator={false}
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
- listHeader: {
+  listHeader: {
     marginBottom: 12,
   },
   listTitle: {
@@ -240,4 +240,3 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
-
