@@ -1,4 +1,4 @@
-// _layout.jsx
+
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 
@@ -9,7 +9,7 @@ export default function RootLayout() {
       <Stack 
         screenOptions={{ 
           headerShown: false,
-          // Add gesture-enabled transitions
+          
           animation: 'slide_from_right',
           gestureEnabled: true,
           gestureDirection: 'horizontal',
@@ -24,3 +24,4 @@ export default function RootLayout() {
     </>
   );
 }
+
