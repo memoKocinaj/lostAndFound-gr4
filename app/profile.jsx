@@ -1,12 +1,12 @@
 import { useState } from "react";
 import {
-  View,
-  Text,
-  TextInput,
+  Alert,
   FlatList,
   StyleSheet,
-  Alert,
+  Text,
+  TextInput,
   TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import NavBar from "../components/NavBar";
@@ -66,10 +66,71 @@ export default function ProfileScreen() {
             placeholderTextColor="#999"
           />
 
+          <TextInput
+            placeholder="Email Address *"
+            value={email}
+            onChangeText={setEmail}
+            style={styles.input}
+            placeholderTextColor="#999"
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
 
+          <TouchableOpacity
+            style={[
+              styles.addButton,
+              (!name.trim() || !email.trim()) && styles.addButtonDisabled,
+            ]}
+            onPress={saveProfile}
+            disabled={!name.trim() || !email.trim()}
+          >
+            <Text style={styles.addButtonText}>Save Profile</Text>
+          </TouchableOpacity>
+        </View>
 
+        <View style={styles.listHeader}>
+          <Text style={styles.listTitle}>
+            Saved Profiles ({profiles.length})
+          </Text>
+        </View>
 
-          const styles = StyleSheet.create({
+        {profiles.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateTitle}>No profiles saved yet</Text>
+            <Text style={styles.emptyStateText}>
+              Start by adding a user profile above
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={profiles}
+            keyExtractor={(profile) => profile.id}
+            renderItem={({ item }) => (
+              <View style={styles.profileCard}>
+                <View style={styles.profileInfo}>
+                  <Text style={styles.profileName}>{item.name}</Text>
+                  <Text style={styles.profileEmail}>{item.email}</Text>
+                  <Text style={styles.profileDate}>Added: {item.date}</Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => deleteProfile(item.id)}
+                >
+                  <Text style={styles.deleteButtonText}>Delete</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+            showsVerticalScrollIndicator={false}
+            style={styles.list}
+          />
+        )}
+      </View>
+      <NavBar />
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F8F9FA",
@@ -130,3 +191,62 @@ export default function ProfileScreen() {
   list: {
     flex: 1,
   },
+  profileCard: {
+    backgroundColor: "white",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  profileInfo: {
+    flex: 1,
+  },
+  profileName: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#2C3E50",
+    marginBottom: 4,
+  },
+  profileEmail: {
+    fontSize: 14,
+    color: "#4A90E2",
+    marginBottom: 4,
+  },
+  profileDate: {
+    fontSize: 12,
+    color: "#999",
+  },
+  deleteButton: {
+    padding: 8,
+    borderRadius: 6,
+    backgroundColor: "#FFF5F5",
+  },
+  deleteButtonText: {
+    color: "#FF6B6B",
+    fontSize: 12,
+    fontWeight: "500",
+  },
+  emptyState: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 60,
+  },
+  emptyStateTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#666",
+    marginBottom: 8,
+  },
+  emptyStateText: {
+    fontSize: 14,
+    color: "#999",
+    textAlign: "center",
+  },
+});
