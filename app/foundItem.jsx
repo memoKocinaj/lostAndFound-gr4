@@ -260,4 +260,82 @@ export default function FoundItemScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
+const createStyles = (theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    content: {
+      flex: 1,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollContent: {
+      padding: 20,
+      paddingBottom: 100,
+    },
+    formContainer: {
+      backgroundColor: theme.colors.card,
+      borderRadius: 16,
+      padding: 20,
+      marginBottom: 20,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: theme.isDark ? 0.3 : 0.1,
+      shadowRadius: 8,
+      elevation: 3,
+    },
+    listSection: {
+      minHeight: 200,
+    },
+    photoButton: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: theme.colors.primary,
+      paddingVertical: 12,
+      borderRadius: 10,
+      gap: 6,
+    },
+   photoButtonText: {
+      color: "white",
+      fontSize: 14,
+      fontWeight: "600",
+    },
+    imagePreviewContainer: {
+      alignItems: "center",
+      marginBottom: 12,
+      marginTop: 4,
+    },
+    imagePreview: {
+      width: "100%",
+      height: 180,
+      borderRadius: 12,
+      marginBottom: 8,
+    },
+    removeImageButton: {
+      padding: 8,
+    },
+    removeImageText: {
+      color: theme.colors.danger,
+      fontSize: 13,
+      fontWeight: "500",
+    },
+    mapButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 12,
+      padding: 8,
+    },
+    mapButtonText: {
+      marginLeft: 6,
+      color: theme.colors.primary,
+      fontWeight: "600",
+    },
+  });
+
+  });
 
