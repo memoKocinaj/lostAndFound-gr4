@@ -153,3 +153,111 @@ export default function FoundItemScreen() {
       setLoading(false);
     }
   };
+
+  const addFoundItemHandler = async () => {
+    if (foundName.trim() === "") {
+      return Alert.alert("Error", "Please enter item name");
+    }
+
+    if (!selectedCategory) {
+      return Alert.alert("Error", "Please select a category");
+    }
+
+    if (!user) {
+      return Alert.alert("Error", "Please log in");
+    }
+
+    try {
+      const newItem = {
+        name: foundName.trim(),
+        location: foundLocation.trim(),
+        category: selectedCategory,
+        date: new Date().toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        }),
+        type: "found",
+        userId: user.uid,
+        imageUri: imageUri || null,
+        locationCoords: locationCoords || null,
+      };
+
+      await addFoundItem(newItem, user.uid);
+
+      setFoundName("");
+      setFoundLocation("");
+      setSelectedCategory("");
+      setImageUri(null);
+      setLocationCoords(null);
+
+      await loadFoundItems();
+      Alert.alert("Success", "Found item added!");
+    } catch (error) {
+      Alert.alert("Error", "Failed to add item");
+    }
+  };
+
+  const deleteFoundItem = async (id) => {
+    Alert.alert("Delete Item", "Are you sure?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await deleteItem("foundItems", id);
+            await loadFoundItems();
+          } catch {
+            Alert.alert("Error", "Failed to delete item");
+          }
+        },
+      },
+    ]);
+  };
+
+  const getCategoryName = (categoryId) => {
+    const categories = {
+      education: "Education",
+      cars: "Cars",
+      personal: "Personal Things",
+      animals: "Animals",
+      people: "People",
+      "women-clothing": "Women Clothing",
+      accessories: "Accessories",
+    };
+    return categories[categoryId] || "Unknown";
+  };
+
+  const filteredItems = foundItems.filter(
+    (item) =>
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.location &&
+        item.location.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      getCategoryName(item.category)
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase())
+  );
+
+  if (!user) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.content}>
+          <Text style={styles.loginMessage}>
+            Please log in to report found items
+          </Text>
+        </View>
+        <NavBar />
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.content}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+
