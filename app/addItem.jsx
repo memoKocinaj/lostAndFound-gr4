@@ -246,214 +246,323 @@ try {
     ]);
   };
   
-    if (itemName.trim().length < 2) {
-      Alert.alert("Error", "Item name should be at least 2 characters long");
-      return;
-    }
+    const styles = createStyles(theme);
 
-    const newItem = {
-      id: Date.now().toString(),
-      name: itemName.trim(),
-      description: itemDescription.trim(),
-      lastSeenLocation: lastSeenLocation.trim(),
-      category: selectedCategory,
-      date: new Date().toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      }),
-      type: "lost",
-    };
+  if (!user) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.content}>
+          <Text style={styles.loginMessage}>
+            Please log in to report lost items
+          </Text>
+        </View>
+        <NavBar />
+      </SafeAreaView>
+    );
+  }
 
-    setLostItems([newItem, ...lostItems]);
-    setItemName("");
-    setItemDescription("");
-    setLastSeenLocation("");
-    setSelectedCategory("");
-
-    Alert.alert("Success", "Lost item reported successfully!");
-  };
-
-  const deleteItem = (id) => {
-    Alert.alert("Delete Item", "Are you sure you want to delete this item?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: () => {
-          setLostItems(lostItems.filter((item) => item.id !== id));
-        },
-      },
-    ]);
-  };
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
       <View style={styles.content}>
-        <View style={styles.formContainer}>
-          <Text style={styles.title}>Report Lost Item</Text>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.formContainer}>
+            <Text style={styles.title}>Report Lost Item</Text>
 
-          <TextInput
-            placeholder="Item Name *"
-            value={itemName}
-            onChangeText={setItemName}
-            style={styles.input}
-            placeholderTextColor="#999"
-          />
+            <TextInput
+              placeholder="Item Name *"
+              value={itemName}
+              onChangeText={setItemName}
+              style={styles.input}
+              placeholderTextColor={theme.colors.textSecondary}
+            />
 
-          <CategorySelector
-            selectedCategory={selectedCategory}
-            onCategorySelect={setSelectedCategory}
-          />
+            <CategorySelector
+              selectedCategory={selectedCategory}
+              onCategorySelect={setSelectedCategory}
+            />
 
-          <TextInput
-            placeholder="Description"
-            value={itemDescription}
-            onChangeText={setItemDescription}
-            style={[styles.input, styles.textArea]}
-            placeholderTextColor="#999"
-            multiline
-            numberOfLines={3}
-          />
+            <TextInput
+              placeholder="Description"
+              value={itemDescription}
+              onChangeText={setItemDescription}
+              style={[styles.input, styles.textArea]}
+              placeholderTextColor={theme.colors.textSecondary}
+              multiline
+              numberOfLines={3}
+            />
 
-          <TextInput
-            placeholder="Last Seen Location"
-            value={lastSeenLocation}
-            onChangeText={setLastSeenLocation}
-            style={styles.input}
-            placeholderTextColor="#999"
-          />
+            <Text style={styles.sectionLabel}>Photo (optional)</Text>
+            <View style={styles.photoRow}>
+              <TouchableOpacity
+                style={styles.photoButton}
+                onPress={handleTakePhoto}
+              >
+                <Ionicons name="camera" size={18} color="white" />
+                <Text style={styles.photoButtonText}>Take Photo</Text>
+              </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[
-              styles.addButton,
-              (!itemName.trim() || !selectedCategory) &&
-                styles.addButtonDisabled,
-            ]}
-            onPress={addItem}
-            disabled={!itemName.trim() || !selectedCategory}
-          >
-            <Text style={styles.addButtonText}>Report Lost Item</Text>
-          </TouchableOpacity>
-        </View>
+              <TouchableOpacity
+                style={styles.photoButton}
+                onPress={handlePickImage}
+              >
+                <Ionicons name="image" size={18} color="white" />
+                <Text style={styles.photoButtonText}>From Gallery</Text>
+              </TouchableOpacity>
+            </View>
 
-        <View style={styles.listHeader}>
-          <Text style={styles.listTitle}>Lost Items ({lostItems.length})</Text>
-        </View>
-
-        {lostItems.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Ionicons name="search-outline" size={64} color="#CCCCCC" />
-            <Text style={styles.emptyStateTitle}>
-              No lost items reported yet
-            </Text>
-            <Text style={styles.emptyStateText}>
-              Use the form above to report your first lost item
-            </Text>
-          </View>
-        ) : (
-          <FlatList
-            data={lostItems}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <ItemCard
-                item={item}
-                onDelete={() => deleteItem(item.id)}
-                type="lost"
-              />
+            {imageUri && (
+              <View style={styles.imagePreviewContainer}>
+                <Image source={{ uri: imageUri }} style={styles.imagePreview} />
+                <TouchableOpacity
+                  style={styles.removeImageButton}
+                  onPress={() => setImageUri(null)}
+                >
+                  <Text style={styles.removeImageText}>Remove image</Text>
+                </TouchableOpacity>
+              </View>
             )}
-            showsVerticalScrollIndicator={false}
-            style={styles.list}
-          />
-        )}
+
+            <TextInput
+              placeholder="Last Seen Location"
+              value={lastSeenLocation}
+              onChangeText={setLastSeenLocation}
+              style={styles.input}
+              placeholderTextColor={theme.colors.textSecondary}
+            />
+
+            <TouchableOpacity
+              style={styles.mapButton}
+              onPress={getCurrentLocation}
+            >
+              <Ionicons
+                name="location-outline"
+                size={18}
+                color={theme.colors.primary}
+              />
+              <Text style={styles.mapButtonText}>Get Current Location</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.addButton,
+                (!itemName.trim() || !selectedCategory) &&
+                  styles.addButtonDisabled,
+              ]}
+              onPress={addItem}
+              disabled={!itemName.trim() || !selectedCategory}
+            >
+              <Ionicons name="add-circle" size={20} color="white" />
+              <Text style={styles.addButtonText}>Report Lost Item</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.listSection}>
+            <View style={styles.listHeader}>
+              <Text style={styles.listTitle}>
+                Lost Items ({lostItems.length})
+              </Text>
+            </View>
+
+            {loading ? (
+              <View style={styles.emptyState}>
+                <ActivityIndicator size="large" color={theme.colors.primary} />
+              </View>
+            ) : lostItems.length === 0 ? (
+              <View style={styles.emptyState}>
+                <Ionicons
+                  name="search-outline"
+                  size={64}
+                  color={theme.colors.textSecondary}
+                />
+                <Text style={styles.emptyStateTitle}>
+                  No lost items reported yet
+                </Text>
+                <Text style={styles.emptyStateText}>
+                  Use the form above to report your first lost item
+                </Text>
+              </View>
+            ) : (
+              <View style={styles.listContainer}>
+                {lostItems.map((item) => (
+                  <ItemCard
+                    key={item.id}
+                    item={item}
+                    onDelete={() => deleteItemHandler(item.id)}
+                    type="lost"
+                  />
+                ))}
+              </View>
+            )}
+          </View>
+        </ScrollView>
       </View>
       <NavBar />
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F8F9FA",
-  },
-  content: {
-    flex: 1,
-    padding: 20,
-  },
-  formContainer: {
-    backgroundColor: "white",
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#2C3E50",
-    marginBottom: 16,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#E9ECEF",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    fontSize: 16,
-    backgroundColor: "#F8F9FA",
-  },
-  textArea: {
-    minHeight: 80,
-    textAlignVertical: "top",
-  },
-  addButton: {
-    backgroundColor: "#FF6B6B",
-    borderRadius: 12,
-    padding: 16,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+const createStyles = (theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    content: {
+      flex: 1,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollContent: {
+      padding: 20,
+      paddingBottom: 100,
+    },
+    formContainer: {
+      backgroundColor: theme.colors.card,
+      borderRadius: 16,
+      padding: 20,
+      marginBottom: 20,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: theme.isDark ? 0.3 : 0.1,
+      shadowRadius: 8,
+      elevation: 3,
+    },
+    listSection: {
+      minHeight: 200,
+    },
+    listContainer: {},
+    loginMessage: {
+      fontSize: 16,
+      color: theme.colors.text,
+      textAlign: "center",
+      marginTop: 20,
+    },
+    title: {
+      fontSize: 20,
+      fontWeight: "bold",
+      color: theme.colors.text,
+      marginBottom: 16,
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 12,
+      fontSize: 16,
+      backgroundColor: theme.colors.background,
+      color: theme.colors.text,
+    },
+    textArea: {
+      minHeight: 80,
+      textAlignVertical: "top",
+    },
+    addButton: {
+      flexDirection: "row",
+      backgroundColor: theme.colors.danger,
+      borderRadius: 12,
+      padding: 16,
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: 8,
+      gap: 8,
+    },
+    addButtonDisabled: {
+      backgroundColor: theme.colors.textSecondary,
+    },
+    addButtonText: {
+      color: "white",
+      fontSize: 16,
+      fontWeight: "600",
+    },
+    listHeader: {
+      marginBottom: 12,
+    },
+    listTitle: {
+      fontSize: 18,
+      fontWeight: "bold",
+      color: theme.colors.text,
+    },
+    emptyState: {
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: 60,
+    },
+    emptyStateTitle: {
+      fontSize: 18,
+      fontWeight: "600",
+      color: theme.colors.textSecondary,
+      marginBottom: 8,
+    },
+    emptyStateText: {
+      fontSize: 14,
+      color: theme.colors.textSecondary,
+      textAlign: "center",
+    },
+    sectionLabel: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: theme.colors.text,
+      marginBottom: 6,
+      marginTop: 4,
+    },
+    photoRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginBottom: 8,
+      gap: 8,
+    },
+    photoButton: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: theme.colors.primary,
+      paddingVertical: 12,
+      borderRadius: 10,
+      gap: 6,
+    },
+    photoButtonText: {
+      color: "white",
+      fontSize: 14,
+      fontWeight: "600",
+    },
+    imagePreviewContainer: {
+      alignItems: "center",
+      marginBottom: 12,
+      marginTop: 4,
+    },
+    imagePreview: {
+      width: "100%",
+      height: 180,
+      borderRadius: 12,
+      marginBottom: 8,
+    },
+    removeImageButton: {
+      padding: 8,
+    },
+    removeImageText: {
+      color: theme.colors.danger,
+      fontSize: 13,
+      fontWeight: "500",
+    },
+    mapButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 12,
+      padding: 8,
+    },
+    mapButtonText: {
+      marginLeft: 6,
+      color: theme.colors.primary,
+      fontWeight: "600",
+    },
+  });
 
-  addButtonDisabled: {
-    backgroundColor: "#CCCCCC",
-  },
-  addButtonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  listHeader: {
-    marginBottom: 12,
-  },
-  listTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#2C3E50",
-  },
-  list: {
-    flex: 1,
-  },
-  emptyState: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 60,
-  },
-  emptyStateTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#666",
-    marginBottom: 8,
-  },
-  emptyStateText: {
-    fontSize: 14,
-    color: "#999",
-    textAlign: "center",
-  },
-});
 
-
-
+  
