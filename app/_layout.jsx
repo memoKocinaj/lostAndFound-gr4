@@ -1,27 +1,23 @@
-
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { AuthProvider } from "../contexts/AuthContext";
+import { ThemeProvider } from "../contexts/ThemeContext";
 
 export default function RootLayout() {
   return (
-    <>
-      <StatusBar style="dark" />
-      <Stack 
-        screenOptions={{ 
-          headerShown: false,
-          
-          animation: 'slide_from_right',
-          gestureEnabled: true,
-          gestureDirection: 'horizontal',
-        }}
-      >
-        <Stack.Screen name="index" />
-        <Stack.Screen name="addItem" />
-        <Stack.Screen name="foundItem" />
-        <Stack.Screen name="profile" />
-        <Stack.Screen name="about" />
-      </Stack>
-    </>
+    <ThemeProvider>
+      <AuthProvider>
+        <StatusBar style="auto" />
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" options={{ title: "Home" }} />
+          <Stack.Screen name="add-Item" options={{ title: "Add Item" }} />
+          <Stack.Screen name="found-Item" options={{ title: "Found Items" }} />
+          <Stack.Screen name="settings" options={{ title: "Settings" }} />
+          <Stack.Screen name="matches" options={{ title: "Matches" }} />
+          <Stack.Screen name="about" options={{ title: "About" }} />
+          <Stack.Screen name="login" options={{ title: "Login" }} />
+        </Stack>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
-
