@@ -10,7 +10,7 @@ export default function ItemCard({ item, onDelete, type = "lost" }) {
         ) : (
           <View style={styles.noPhotoContainer}>
             <Image
-              source={require("../assets/no-image.jpg")}
+              source={require("../assets/images/no-image.jpg")}
               style={styles.noPhotoImage}
               resizeMode="cover"
             />
