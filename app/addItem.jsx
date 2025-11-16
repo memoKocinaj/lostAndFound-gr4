@@ -1,13 +1,12 @@
-import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
-  Alert,
-  FlatList,
-  StyleSheet,
+  View,
   Text,
   TextInput,
+  FlatList,
+  StyleSheet,
+  Alert,
   TouchableOpacity,
-  View,
   ActivityIndicator,
   Image,
   ScrollView,
@@ -16,9 +15,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
+import NavBar from "../components/NavBar";
 import CategorySelector from "../components/CategorySelector";
 import ItemCard from "../components/ItemCard";
-import NavBar from "../components/NavBar";
 import {
   addLostItem,
   getUserLostItems,
@@ -33,9 +32,9 @@ export default function AddItemScreen() {
   const [lastSeenLocation, setLastSeenLocation] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [lostItems, setLostItems] = useState([]);
-const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-    const [imageUri, setImageUri] = useState(null);
+  const [imageUri, setImageUri] = useState(null);
 
   const [locationCoords, setLocationCoords] = useState(null);
 
@@ -178,7 +177,7 @@ const [loading, setLoading] = useState(false);
     }
   };
 
-  const addItem = () => {
+  const addItem = async () => {
     if (itemName.trim() === "") {
       Alert.alert("Error", "Please enter item name");
       return;
@@ -188,7 +187,8 @@ const [loading, setLoading] = useState(false);
       Alert.alert("Error", "Please select a category");
       return;
     }
-try {
+
+    try {
       console.log("➕ ADDING NEW ITEM...");
 
       const newItem = {
@@ -245,8 +245,8 @@ try {
       },
     ]);
   };
-  
-    const styles = createStyles(theme);
+
+  const styles = createStyles(theme);
 
   if (!user) {
     return (
@@ -566,3 +566,4 @@ const createStyles = (theme) =>
 
 
   
+
