@@ -78,6 +78,7 @@ export default function FoundItemScreen() {
         setImageUri(result.assets[0].uri);
       }
     } catch (error) {
+      console.log("Camera error:", error);
       Alert.alert("Error", "Failed to open camera");
     }
   };
@@ -94,6 +95,7 @@ export default function FoundItemScreen() {
         setImageUri(result.assets[0].uri);
       }
     } catch (error) {
+      console.log("Gallery error:", error);
       Alert.alert("Error", "Failed to open gallery");
     }
   };
@@ -119,22 +121,30 @@ export default function FoundItemScreen() {
 
         if (reverse && reverse.length > 0) {
           const addr = reverse[0];
-          const parts = [];
 
-          if (addr.street) parts.push(addr.street);
-          if (addr.name) parts.push(addr.name);
-          if (addr.city) parts.push(addr.city);
-          if (addr.region) parts.push(addr.region);
+          const addressParts = [];
+          if (addr.street && addr.street.trim()) addressParts.push(addr.street);
+          if (addr.name && addr.name.trim()) addressParts.push(addr.name);
+          if (addr.city && addr.city.trim()) addressParts.push(addr.city);
+          if (addr.region && addr.region.trim()) addressParts.push(addr.region);
 
-          addressText = parts.join(", ");
+          addressText = addressParts.join(", ");
 
-          if (addressText.length < 5) {
+          if (!addressText.trim() || addressText.trim().length < 5) {
             addressText = `${current.coords.latitude.toFixed(
               5
             )}, ${current.coords.longitude.toFixed(5)}`;
           }
+        } else {
+          addressText = `${current.coords.latitude.toFixed(
+            5
+          )}, ${current.coords.longitude.toFixed(5)}`;
         }
-      } catch {
+      } catch (reverseError) {
+        console.log(
+          "Reverse geocode completely failed, using coordinates only"
+        );
+
         addressText = `${current.coords.latitude.toFixed(
           5
         )}, ${current.coords.longitude.toFixed(5)}`;
@@ -146,9 +156,21 @@ export default function FoundItemScreen() {
         longitude: current.coords.longitude,
       });
 
-      Alert.alert("Location Set", "Current location has been set successfully!");
+      Alert.alert(
+        "Location Set",
+        "Current location has been set successfully!"
+      );
     } catch (error) {
-      Alert.alert("Error", "Failed to get location");
+      console.log("Location error:", error);
+
+      if (error.message.includes("getCountryCode")) {
+        Alert.alert(
+          "Location Set",
+          "Coordinates saved successfully! Address lookup unavailable in your area."
+        );
+      } else {
+        Alert.alert("Error", "Failed to get location: " + error.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -156,15 +178,18 @@ export default function FoundItemScreen() {
 
   const addFoundItemHandler = async () => {
     if (foundName.trim() === "") {
-      return Alert.alert("Error", "Please enter item name");
+      Alert.alert("Error", "Please enter item name");
+      return;
     }
 
-    if (!selectedCategory) {
-      return Alert.alert("Error", "Please select a category");
+    if (selectedCategory === "") {
+      Alert.alert("Error", "Please select a category");
+      return;
     }
 
     if (!user) {
-      return Alert.alert("Error", "Please log in");
+      Alert.alert("Error", "Please log in to report found items");
+      return;
     }
 
     try {
@@ -192,14 +217,15 @@ export default function FoundItemScreen() {
       setLocationCoords(null);
 
       await loadFoundItems();
-      Alert.alert("Success", "Found item added!");
+      Alert.alert("Success", "Found item added successfully!");
     } catch (error) {
-      Alert.alert("Error", "Failed to add item");
+      console.error("Error adding found item:", error);
+      Alert.alert("Error", "Failed to add found item: " + error.message);
     }
   };
 
   const deleteFoundItem = async (id) => {
-    Alert.alert("Delete Item", "Are you sure?", [
+    Alert.alert("Delete Item", "Are you sure you want to delete this item?", [
       { text: "Cancel", style: "cancel" },
       {
         text: "Delete",
@@ -208,7 +234,7 @@ export default function FoundItemScreen() {
           try {
             await deleteItem("foundItems", id);
             await loadFoundItems();
-          } catch {
+          } catch (error) {
             Alert.alert("Error", "Failed to delete item");
           }
         },
@@ -239,6 +265,8 @@ export default function FoundItemScreen() {
         .includes(searchQuery.toLowerCase())
   );
 
+  const styles = createStyles(theme);
+
   if (!user) {
     return (
       <SafeAreaView style={styles.container}>
@@ -260,6 +288,159 @@ export default function FoundItemScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
+          <View style={styles.formContainer}>
+            <Text style={styles.title}>Report Found Item</Text>
+
+            <TextInput
+              placeholder="Item Name *"
+              value={foundName}
+              onChangeText={setFoundName}
+              style={styles.input}
+              placeholderTextColor={theme.colors.textSecondary}
+            />
+
+            <CategorySelector
+              selectedCategory={selectedCategory}
+              onCategorySelect={setSelectedCategory}
+            />
+
+            <Text style={styles.sectionLabel}>Photo (optional)</Text>
+            <View style={styles.photoRow}>
+              <TouchableOpacity
+                style={styles.photoButton}
+                onPress={handleTakePhoto}
+              >
+                <Ionicons name="camera" size={18} color="white" />
+                <Text style={styles.photoButtonText}>Take Photo</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.photoButton}
+                onPress={handlePickImage}
+              >
+                <Ionicons name="image" size={18} color="white" />
+                <Text style={styles.photoButtonText}>From Gallery</Text>
+              </TouchableOpacity>
+            </View>
+
+            {imageUri && (
+              <View style={styles.imagePreviewContainer}>
+                <Image source={{ uri: imageUri }} style={styles.imagePreview} />
+                <TouchableOpacity
+                  style={styles.removeImageButton}
+                  onPress={() => setImageUri(null)}
+                >
+                  <Text style={styles.removeImageText}>Remove image</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            <TextInput
+              placeholder="Where did you find it?"
+              value={foundLocation}
+              onChangeText={setFoundLocation}
+              style={styles.input}
+              placeholderTextColor={theme.colors.textSecondary}
+            />
+
+            <TouchableOpacity
+              style={styles.mapButton}
+              onPress={getCurrentLocation}
+            >
+              <Ionicons
+                name="location-outline"
+                size={18}
+                color={theme.colors.primary}
+              />
+              <Text style={styles.mapButtonText}>Get Current Location</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.addButton,
+                (!foundName.trim() || !selectedCategory) &&
+                  styles.addButtonDisabled,
+              ]}
+              onPress={addFoundItemHandler}
+              disabled={!foundName.trim() || !selectedCategory}
+            >
+              <Ionicons name="add-circle" size={20} color="white" />
+              <Text style={styles.addButtonText}>Add Found Item</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.listSection}>
+            <View style={styles.searchContainer}>
+              <Ionicons
+                name="search"
+                size={20}
+                color={theme.colors.textSecondary}
+                style={styles.searchIcon}
+              />
+              <TextInput
+                placeholder="Search found items..."
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                style={styles.searchInput}
+                placeholderTextColor={theme.colors.textSecondary}
+              />
+              {searchQuery ? (
+                <TouchableOpacity onPress={() => setSearchQuery("")}>
+                  <Ionicons
+                    name="close-circle"
+                    size={20}
+                    color={theme.colors.textSecondary}
+                  />
+                </TouchableOpacity>
+              ) : null}
+            </View>
+
+            <View style={styles.listHeader}>
+              <Text style={styles.listTitle}>
+                Found Items ({filteredItems.length})
+              </Text>
+            </View>
+
+            {loading ? (
+              <View style={styles.emptyState}>
+                <ActivityIndicator size="large" color={theme.colors.primary} />
+              </View>
+            ) : filteredItems.length === 0 ? (
+              <View style={styles.emptyState}>
+                <Ionicons
+                  name="search-outline"
+                  size={64}
+                  color={theme.colors.textSecondary}
+                />
+                <Text style={styles.emptyStateTitle}>
+                  {searchQuery ? "No items found" : "No found items yet"}
+                </Text>
+                <Text style={styles.emptyStateText}>
+                  {searchQuery
+                    ? "Try adjusting your search terms"
+                    : "Start by reporting items you've found"}
+                </Text>
+              </View>
+            ) : (
+              <View style={styles.listContainer}>
+                {filteredItems.map((item) => (
+                  <ItemCard
+                    key={item.id}
+                    item={item}
+                    onDelete={() => deleteFoundItem(item.id)}
+                    type="found"
+                  />
+                ))}
+              </View>
+            )}
+          </View>
+        </ScrollView>
+      </View>
+      <NavBar />
+    </SafeAreaView>
+  );
+}
+
 const createStyles = (theme) =>
   StyleSheet.create({
     container: {
@@ -290,6 +471,104 @@ const createStyles = (theme) =>
     listSection: {
       minHeight: 200,
     },
+    listContainer: {},
+    loginMessage: {
+      fontSize: 16,
+      color: theme.colors.text,
+      textAlign: "center",
+      marginTop: 20,
+    },
+    title: {
+      fontSize: 20,
+      fontWeight: "bold",
+      color: theme.colors.text,
+      marginBottom: 16,
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 12,
+      fontSize: 16,
+      backgroundColor: theme.colors.background,
+      color: theme.colors.text,
+    },
+    addButton: {
+      flexDirection: "row",
+      backgroundColor: theme.colors.success,
+      borderRadius: 12,
+      padding: 16,
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: 8,
+      gap: 8,
+    },
+    addButtonDisabled: {
+      backgroundColor: theme.colors.textSecondary,
+    },
+    addButtonText: {
+      color: "white",
+      fontSize: 16,
+      fontWeight: "600",
+    },
+    searchContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: theme.colors.card,
+      borderRadius: 12,
+      paddingHorizontal: 16,
+      marginBottom: 16,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+    },
+    searchIcon: {
+      marginRight: 8,
+    },
+    searchInput: {
+      flex: 1,
+      paddingVertical: 12,
+      fontSize: 16,
+      color: theme.colors.text,
+    },
+    listHeader: {
+      marginBottom: 12,
+    },
+    listTitle: {
+      fontSize: 18,
+      fontWeight: "bold",
+      color: theme.colors.text,
+    },
+    emptyState: {
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: 60,
+    },
+    emptyStateTitle: {
+      fontSize: 18,
+      fontWeight: "600",
+      color: theme.colors.textSecondary,
+      marginTop: 16,
+      marginBottom: 8,
+    },
+    emptyStateText: {
+      fontSize: 14,
+      color: theme.colors.textSecondary,
+      textAlign: "center",
+    },
+    sectionLabel: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: theme.colors.text,
+      marginBottom: 6,
+      marginTop: 4,
+    },
+    photoRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginBottom: 8,
+      gap: 8,
+    },
     photoButton: {
       flex: 1,
       flexDirection: "row",
@@ -300,7 +579,7 @@ const createStyles = (theme) =>
       borderRadius: 10,
       gap: 6,
     },
-   photoButtonText: {
+    photoButtonText: {
       color: "white",
       fontSize: 14,
       fontWeight: "600",
@@ -336,6 +615,3 @@ const createStyles = (theme) =>
       fontWeight: "600",
     },
   });
-
-  });
-
