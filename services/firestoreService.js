@@ -106,3 +106,16 @@ export const getUserLostItemsCount = async (userId) => {
     throw error;
   }
 };
+export const getUserFoundItemsCount = async (userId) => {
+  try {
+    const q = query(
+      collection(db, "foundItems"),
+      where("userId", "==", userId)
+    );
+    const querySnapshot = await getCountFromServer(q);
+    return querySnapshot.data().count;
+  } catch (error) {
+    console.error("❌ Firestore ERROR getting found items count:", error);
+    throw error;
+  }
+};
