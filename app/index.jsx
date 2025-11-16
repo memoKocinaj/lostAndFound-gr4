@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import { Link, router } from "expo-router";
@@ -11,11 +12,32 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+=======
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+} from "react-native";
+import { Link, router } from "expo-router";
+>>>>>>> 523d364c9bdcdce6f19d963ed4fbbe6fdff242d2
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuth } from "../contexts/AuthContext";
+import { useTheme } from "../contexts/ThemeContext";
 import NavBar from "../components/NavBar";
+<<<<<<< HEAD
 import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
 import { getCurrentWeather } from "../services/weatherService";
+=======
+import { useState, useEffect } from "react";
+import { getCurrentWeather } from "../services/weatherService";
+import * as Location from "expo-location";
+import { Ionicons } from "@expo/vector-icons";
+>>>>>>> 523d364c9bdcdce6f19d963ed4fbbe6fdff242d2
 
 export default function HomeScreen() {
   const { user, loading } = useAuth();
@@ -390,3 +412,7 @@ const createStyles = (theme) =>
       fontSize: 12,
     },
   });
+<<<<<<< HEAD
+=======
+
+>>>>>>> 523d364c9bdcdce6f19d963ed4fbbe6fdff242d2
