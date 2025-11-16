@@ -61,3 +61,15 @@ export const getUserLostItems = async (userId) => {
     throw error;
   }
 };
+
+
+
+
+
+export const deleteItem = async (collectionName, itemId) => {
+  try {
+    await deleteDoc(doc(db, collectionName, itemId));
+  } catch (error) {
+    throw error;
+  }
+};
