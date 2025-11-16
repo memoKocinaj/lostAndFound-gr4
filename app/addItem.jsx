@@ -188,7 +188,64 @@ const [loading, setLoading] = useState(false);
       Alert.alert("Error", "Please select a category");
       return;
     }
+try {
+      console.log("➕ ADDING NEW ITEM...");
 
+      const newItem = {
+        name: itemName.trim(),
+        description: itemDescription.trim(),
+        lastSeenLocation: lastSeenLocation.trim(),
+        category: selectedCategory,
+        date: new Date().toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        }),
+        type: "lost",
+        userId: user.uid,
+
+        imageUri: imageUri,
+        locationCoords: locationCoords,
+      };
+
+      console.log("📦 Item to save:", newItem);
+
+      const itemId = await addLostItem(newItem, user.uid);
+      console.log("✅ Item saved with ID:", itemId);
+
+      setItemName("");
+      setItemDescription("");
+      setLastSeenLocation("");
+      setSelectedCategory("");
+      setImageUri(null);
+      setLocationCoords(null);
+
+      await loadLostItems();
+      Alert.alert("Success", "Lost item reported successfully!");
+    } catch (error) {
+      console.error("❌ Error adding item:", error);
+      Alert.alert("Error", "Failed to add item: " + error.message);
+    }
+  };
+
+  const deleteItemHandler = async (id) => {
+    Alert.alert("Delete Item", "Are you sure you want to delete this item?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await deleteItem("lostItems", id);
+            await loadLostItems();
+          } catch (error) {
+            Alert.alert("Error", "Failed to delete item");
+          }
+        },
+      },
+    ]);
+  };
+  
     if (itemName.trim().length < 2) {
       Alert.alert("Error", "Item name should be at least 2 characters long");
       return;
@@ -397,5 +454,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
+
 
 
