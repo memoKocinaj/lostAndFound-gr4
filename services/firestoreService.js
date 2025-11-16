@@ -32,10 +32,25 @@ export const addLostItem = async (item, userId) => {
     throw error;
   }
 };
-
-
-
-
+export const addFoundItem = async (item, userId) => {
+  try {
+    const docRef = await addDoc(collection(db, "foundItems"), {
+      name: item.name,
+      location: item.location,
+      category: item.category,
+      date: item.date,
+      type: "found",
+      userId: userId,
+      imageUri: item.imageUri || null,
+      locationCoords: item.locationCoords || null,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+    return docRef.id;
+  } catch (error) {
+    throw error;
+  }
+};
 export const getUserLostItems = async (userId) => {
   try {
     console.log("🔍 Firestore: Getting items for user:", userId);
