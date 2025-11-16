@@ -8,6 +8,9 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  ActivityIndicator,
+  Image,
+  ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CategorySelector from "../components/CategorySelector";
@@ -240,3 +243,4 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
+
