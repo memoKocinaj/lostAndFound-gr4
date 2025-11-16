@@ -1,14 +1,11 @@
-
-import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import NavBar from "../components/NavBar";
 
 export default function AboutScreen() {
   return (
     <SafeAreaView style={styles.container}>
-
       <ScrollView
-        
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
@@ -72,13 +69,9 @@ export default function AboutScreen() {
         </View>
       </ScrollView>
       <NavBar />
-
     </SafeAreaView>
   );
 }
-
-
-
 
 const styles = StyleSheet.create({
   container: {
