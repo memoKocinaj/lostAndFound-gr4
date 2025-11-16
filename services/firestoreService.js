@@ -33,3 +33,31 @@ export const addLostItem = async (item, userId) => {
   }
 };
 
+
+
+
+export const getUserLostItems = async (userId) => {
+  try {
+    console.log("🔍 Firestore: Getting items for user:", userId);
+
+    const q = query(
+      collection(db, "lostItems"),
+      where("userId", "==", userId),
+      orderBy("createdAt", "desc")
+    );
+
+    const querySnapshot = await getDocs(q);
+    console.log("📄 Firestore: Query snapshot size:", querySnapshot.size);
+
+    const items = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    console.log("✅ Firestore: Total items found:", items.length);
+    return items;
+  } catch (error) {
+    console.error("❌ Firestore ERROR:", error);
+    throw error;
+  }
+};
