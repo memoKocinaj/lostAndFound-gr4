@@ -1,19 +1,30 @@
-import { useState } from "react";
-
+import { useState, useEffect } from "react";
 import {
-    Alert,
-    View,
-    Text,
-    TextInput,
-    FlatList,
-    StyleSheet,
-    TouchableOpacity,
-                    } from "react-native";
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  Alert,
+  TouchableOpacity,
+  ActivityIndicator,
+  Image,
+  ScrollView,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "../contexts/AuthContext";
+import { useTheme } from "../contexts/ThemeContext";
 import NavBar from "../components/NavBar";
 import CategorySelector from "../components/CategorySelector";
 import ItemCard from "../components/ItemCard";
+import {
+  addFoundItem,
+  deleteItem,
+  getUserFoundItems,
+} from "../services/firestoreService";
+
+import * as ImagePicker from "expo-image-picker";
+import * as Location from "expo-location";
 
 export default function FoundItemScreen() {
   const [foundName, setFoundName] = useState("");
@@ -21,41 +32,185 @@ export default function FoundItemScreen() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [foundItems, setFoundItems] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const addFoundItem = () => {
-    if (foundName.trim() === "") {
-      Alert.alert("Error", "Please enter item name");
-      return;
+  const [imageUri, setImageUri] = useState(null);
+  const [locationCoords, setLocationCoords] = useState(null);
+
+  const { user } = useAuth();
+  const theme = useTheme();
+
+  useEffect(() => {
+    loadFoundItems();
+  }, [user]);
+
+  useEffect(() => {
+    (async () => {
+      await ImagePicker.requestCameraPermissionsAsync();
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+      await Location.requestForegroundPermissionsAsync();
+    })();
+  }, []);
+
+  const loadFoundItems = async () => {
+    if (!user) return;
+
+    setLoading(true);
+    try {
+      const items = await getUserFoundItems(user.uid);
+      setFoundItems(items);
+    } catch (error) {
+      console.error("Error loading found items:", error);
+      Alert.alert("Error", "Failed to load found items");
     }
-
-    if (selectedCategory === "") {
-      Alert.alert("Error", "Please select a category");
-      return;
-    }
-
-    const newFoundItem = {
-      id: Date.now().toString(),
-      name: foundName,
-      location: foundLocation,
-      category: selectedCategory,
-      date: new Date().toLocaleDateString(),
-      type: "found",
-    };
-
-    setFoundItems([...foundItems, newFoundItem]);
-    setFoundName("");
-    setFoundLocation("");
-    setSelectedCategory("");
-    Alert.alert("Success", "Found item added successfully!");
+    setLoading(false);
   };
 
-  const deleteFoundItem = (id) => {
-    Alert.alert("Delete Item", "Are you sure you want to delete this item?", [
+  const handleTakePhoto = async () => {
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        quality: 0.7,
+        aspect: [4, 3],
+      });
+
+      if (!result.canceled && result.assets[0].uri) {
+        setImageUri(result.assets[0].uri);
+      }
+    } catch (error) {
+      Alert.alert("Error", "Failed to open camera");
+    }
+  };
+
+  const handlePickImage = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        allowsEditing: true,
+        quality: 0.7,
+        aspect: [4, 3],
+      });
+
+      if (!result.canceled && result.assets[0].uri) {
+        setImageUri(result.assets[0].uri);
+      }
+    } catch (error) {
+      Alert.alert("Error", "Failed to open gallery");
+    }
+  };
+
+  const getCurrentLocation = async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Permission denied", "Location permission is required");
+        return;
+      }
+
+      setLoading(true);
+
+      const current = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+
+      let addressText = "";
+
+      try {
+        const reverse = await Location.reverseGeocodeAsync(current.coords);
+
+        if (reverse && reverse.length > 0) {
+          const addr = reverse[0];
+          const parts = [];
+
+          if (addr.street) parts.push(addr.street);
+          if (addr.name) parts.push(addr.name);
+          if (addr.city) parts.push(addr.city);
+          if (addr.region) parts.push(addr.region);
+
+          addressText = parts.join(", ");
+
+          if (addressText.length < 5) {
+            addressText = `${current.coords.latitude.toFixed(
+              5
+            )}, ${current.coords.longitude.toFixed(5)}`;
+          }
+        }
+      } catch {
+        addressText = `${current.coords.latitude.toFixed(
+          5
+        )}, ${current.coords.longitude.toFixed(5)}`;
+      }
+
+      setFoundLocation(addressText);
+      setLocationCoords({
+        latitude: current.coords.latitude,
+        longitude: current.coords.longitude,
+      });
+
+      Alert.alert("Location Set", "Current location has been set successfully!");
+    } catch (error) {
+      Alert.alert("Error", "Failed to get location");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addFoundItemHandler = async () => {
+    if (foundName.trim() === "") {
+      return Alert.alert("Error", "Please enter item name");
+    }
+
+    if (!selectedCategory) {
+      return Alert.alert("Error", "Please select a category");
+    }
+
+    if (!user) {
+      return Alert.alert("Error", "Please log in");
+    }
+
+    try {
+      const newItem = {
+        name: foundName.trim(),
+        location: foundLocation.trim(),
+        category: selectedCategory,
+        date: new Date().toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        }),
+        type: "found",
+        userId: user.uid,
+        imageUri: imageUri || null,
+        locationCoords: locationCoords || null,
+      };
+
+      await addFoundItem(newItem, user.uid);
+
+      setFoundName("");
+      setFoundLocation("");
+      setSelectedCategory("");
+      setImageUri(null);
+      setLocationCoords(null);
+
+      await loadFoundItems();
+      Alert.alert("Success", "Found item added!");
+    } catch (error) {
+      Alert.alert("Error", "Failed to add item");
+    }
+  };
+
+  const deleteFoundItem = async (id) => {
+    Alert.alert("Delete Item", "Are you sure?", [
       { text: "Cancel", style: "cancel" },
       {
         text: "Delete",
-        onPress: () => {
-          setFoundItems(foundItems.filter((item) => item.id !== id));
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await deleteItem("foundItems", id);
+            await loadFoundItems();
+          } catch {
+            Alert.alert("Error", "Failed to delete item");
+          }
         },
       },
     ]);
@@ -84,203 +239,103 @@ export default function FoundItemScreen() {
         .includes(searchQuery.toLowerCase())
   );
 
+  if (!user) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.content}>
+          <Text style={styles.loginMessage}>
+            Please log in to report found items
+          </Text>
+        </View>
+        <NavBar />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <View style={styles.formContainer}>
-          <Text style={styles.title}>Report Found Item</Text>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+const createStyles = (theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    content: {
+      flex: 1,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollContent: {
+      padding: 20,
+      paddingBottom: 100,
+    },
+    formContainer: {
+      backgroundColor: theme.colors.card,
+      borderRadius: 16,
+      padding: 20,
+      marginBottom: 20,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: theme.isDark ? 0.3 : 0.1,
+      shadowRadius: 8,
+      elevation: 3,
+    },
+    listSection: {
+      minHeight: 200,
+    },
+    photoButton: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: theme.colors.primary,
+      paddingVertical: 12,
+      borderRadius: 10,
+      gap: 6,
+    },
+   photoButtonText: {
+      color: "white",
+      fontSize: 14,
+      fontWeight: "600",
+    },
+    imagePreviewContainer: {
+      alignItems: "center",
+      marginBottom: 12,
+      marginTop: 4,
+    },
+    imagePreview: {
+      width: "100%",
+      height: 180,
+      borderRadius: 12,
+      marginBottom: 8,
+    },
+    removeImageButton: {
+      padding: 8,
+    },
+    removeImageText: {
+      color: theme.colors.danger,
+      fontSize: 13,
+      fontWeight: "500",
+    },
+    mapButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 12,
+      padding: 8,
+    },
+    mapButtonText: {
+      marginLeft: 6,
+      color: theme.colors.primary,
+      fontWeight: "600",
+    },
+  });
 
-          <TextInput
-            placeholder="Item Name *"
-            value={foundName}
-            onChangeText={setFoundName}
-            style={styles.input}
-            placeholderTextColor="#999"
-          />
+  });
 
-          <CategorySelector
-            selectedCategory={selectedCategory}
-            onCategorySelect={setSelectedCategory}
-          />
-
-          <TextInput
-            placeholder="Where did you find it?"
-            value={foundLocation}
-            onChangeText={setFoundLocation}
-            style={styles.input}
-            placeholderTextColor="#999"
-          />
-
-          <TouchableOpacity
-            style={[
-              styles.addButton,
-              (!foundName.trim() || !selectedCategory) &&
-                styles.addButtonDisabled,
-            ]}
-            onPress={addFoundItem}
-            disabled={!foundName.trim() || !selectedCategory}
-          >
-            <Ionicons name="add-circle" size={20} color="white" />
-            <Text style={styles.addButtonText}>Add Found Item</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.searchContainer}>
-          <Ionicons
-            name="search"
-            size={20}
-            color="#666"
-            style={styles.searchIcon}
-          />
-          <TextInput
-            placeholder="Search found items..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            style={styles.searchInput}
-            placeholderTextColor="#999"
-          />
-          {searchQuery ? (
-            <TouchableOpacity onPress={() => setSearchQuery("")}>
-              <Ionicons name="close-circle" size={20} color="#666" />
-            </TouchableOpacity>
-          ) : null}
-        </View>
-
-        <View style={styles.listHeader}>
-          <Text style={styles.listTitle}>
-            Found Items ({filteredItems.length})
-          </Text>
-        </View>
-
-        {filteredItems.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Ionicons name="search-outline" size={64} color="#CCCCCC" />
-            <Text style={styles.emptyStateTitle}>
-              {searchQuery ? "No items found" : "No found items yet"}
-            </Text>
-            <Text style={styles.emptyStateText}>
-              {searchQuery
-                ? "Try adjusting your search terms"
-                : "Start by reporting items you've found"}
-            </Text>
-          </View>
-        ) : (
-          <FlatList
-            data={filteredItems}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <ItemCard
-                item={item}
-                onDelete={() => deleteFoundItem(item.id)}
-                type="found"
-              />
-            )}
-            showsVerticalScrollIndicator={false}
-            style={styles.list}
-          />
-        )}
-      </View>
-      <NavBar />
-    </SafeAreaView>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F8F9FA",
-  },
-  content: {
-    flex: 1,
-    padding: 20,
-  },
-  formContainer: {
-    backgroundColor: "white",
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: "#E9ECEF",
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#2C3E50",
-    marginBottom: 16,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#E9ECEF",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    fontSize: 16,
-    backgroundColor: "#F8F9FA",
-  },
-  addButton: {
-    flexDirection: "row",
-    backgroundColor: "#4CAF50",
-    borderRadius: 12,
-    padding: 16,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  addButtonDisabled: {
-    backgroundColor: "#CCCCCC",
-  },
-  addButtonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "600",
-    marginLeft: 8,
-  },
-  searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "white",
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: "#E9ECEF",
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    paddingVertical: 12,
-    fontSize: 16,
-  },
-  listHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  listTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#2C3E50",
-  },
-  list: {
-    flex: 1,
-  },
-  emptyState: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 60,
-  },
-  emptyStateTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#666",
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  emptyStateText: {
-    fontSize: 14,
-    color: "#999",
-    textAlign: "center",
-  },
-});
