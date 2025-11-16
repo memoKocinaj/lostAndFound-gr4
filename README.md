@@ -1,75 +1,233 @@
-# Find Lost Things
+ Lost & Found App – React Native (Expo + Firebase)
 
-Find Lost Things është një aplikacion mobil i zhvilluar me React Native (Expo), i cili synon të ndihmojë përdoruesit të raportojnë dhe të gjejnë sende të humbura në mënyrë të shpejtë, të lehtë dhe të organizuar.
-Ky projekt synon të lehtësojë procesin e gjetjes së sendeve të humbura, duke ofruar një ndërfaqe miqësore dhe intuitive ku përdoruesit mund të raportojnë, kërkojnë dhe menaxhojnë informacionin për sendet e tyre me lehtësi.
+Aplikacion mobil për raportimin e sendeve të humbura, sendeve të gjetura, dhe gjetjen e përputhjeve të mundshme mes tyre duke përdorur Firestore dhe një algoritëm inteligjent krahasimi.
 
-```
-Struktura e aplikacionit:
-📁 Find-Lost-Things/
-├── app/
-│ ├── _layout.jsx
-│ ├── index.jsx
-│ ├── addItem.jsx
-│ ├── foundItem.jsx
-│ ├── profile.jsx
-│ └── about.jsx
-│
-├── components/
-│ ├── CategorySelector.jsx
-│ ├── ItemCard.jsx
-│ └── NavBar.jsx
-│
-├── assets/
-│
-├── App.js
-├── package.json
-└── README.md
-```
+Ky projekt është zhvilluar si pjesë e Faza 2 – Programim, dhe përfshin funksionalitete reale të një sistemi të avancuar Lost & Found.
 
-Aplikacioni përbëhet nga disa ekrane kryesore:
+Funksionalitetet Kryesore
+🔹 1. Raportimi i Sendeve të Humbura
 
-- **Home (index.jsx)**  
-  Ekrani kryesor; përdoruesi mund të navigojë drejt faqeve të tjera: raportimi i sendeve, sendet e gjetura, profili dhe faqja për informacion.
-- **AddItem (addItem.jsx)**  
-  Ekran për raportimin e sendeve të humbura; përdoruesi plotëson emrin, përshkrimin, lokacionin dhe kategorinë.
-- **FoundItem (foundItem.jsx)**  
-  Ekran për raportimin e sendeve të gjetura dhe për kërkim/filter në listë.
-- **Profile (profile.jsx)**  
-  Menaxhimi i profileve të përdoruesve, me mundësi shtimi dhe fshirjeje.
-- **About (about.jsx)**  
-  Përshkruan qëllimin e projektit, misionin, kategoritë dhe jep informata kontaktuese.
+Përdoruesi mund të:
 
-Teknologjitë e përdorura
+shtojë një send të humbur
 
-- React Native dhe Expo Router për navigim
-- SafeAreaView, ScrollView, FlatList për strukturë dhe shfaqje të dhënash
-- Ionicons për ikona
-- Komponentë të personalizuar: NavBar, CategorySelector, ItemCard
+vendos emër, përshkrim, kategori
 
-Udhëzime për nisjen e projektit
+përzgjedh lokacionin (manual + GPS)
 
-# Parakushtet
+ngarkojë fotografi (Kamera ose Galeri)
 
-- Node.js i instaluar
-- Expo CLI
-- Aplikacioni Expo Go në telefon _(opsional)_
+ruajë koordinatat e GPS
 
----
+fshijë sendet e tij
 
-## 1. Instalo Expo CLI
+shohë listën e sendeve të humbura në Firestore
 
-npm install -g expo-cli
+🔹 2. Raportimi i Sendeve të Gjetura
 
-## 2. Instalo Dependencies
+Përdoruesi mund të:
 
-npm install
+shtojë një send të gjetur
 
-## 3. Nise serverin
+vendos lokacionin ku është gjetur
 
-npm install dhe skano QR-code me Expo Go
+ngarkojë fotografi
 
-Zhvilluesit:
+ruajë kategorinë dhe datën
 
+shohë sendet që ka gjetur vetë
+
+🔹 3. Algoritmi i Përputhjes (Matching)
+
+Aplikacioni përdor një algoritëm që llogarit pikë përputhjeje duke analizuar:
+
+✔️ Ngjashmërinë e emrit
+
+✔️ Ngjyrat/kategorinë
+
+✔️ Ngjashmërinë e lokacionit
+
+✔️ Distancën mes fjalëve
+
+Çdo send i humbur krahasohet me sendet e gjetura të përdoruesve tjerë.
+Përputhjet renditen sipas rezultatëve të pikëve (score descending).
+
+Autentikimi
+
+Aplikacioni përdor Firebase Authentication për:
+
+regjistrim / login
+
+ruajtjen e user.uid
+
+ndarjen e të dhënave të përdoruesve
+
+bllokimin e ekraneve pa hyrje
+
+Menaxhimi bëhet me AuthContext.
+
+Sistemi i Temave (Light & Dark Mode)
+
+Aplikacioni përdor ThemeProvider, i cili ofron:
+
+zbulim automatik të temës së telefonit
+
+mundësi për ta ndryshuar temën manualisht
+
+ngjyra dinamike për:
+
+sfond
+
+tekst
+
+karta
+
+butona
+
+borderat
+
+Krejt stilet gjenerohen me:
+
+const styles = createStyles(theme);
+
+Lokacioni & GPS
+
+Përdoret Expo Location për:
+
+marrjen e lokacionit aktual
+
+konvertimin e koordinatave → adresë (reverse geocoding)
+
+fallback automatik në koordinata nëse adresa nuk gjendet
+
+Përdoruesi merr njoftim kur lokacioni vendoset me sukses.
+
+📸 Fotografitë
+
+Duke përdorur Expo ImagePicker, aplikacioni mund:
+
+të hap kamerën
+
+të hapë galerine e telefonit
+
+të editojë foton
+
+të ruajë uri në Firestore
+
+të shfaqë preview
+
+të heqë fotografinë
+
+🛠 Teknologjitë e Përdorura
+Frontend
+
+React Native (Expo)
+
+Expo Router
+
+Expo ImagePicker
+
+Expo Location
+
+React Navigation
+
+Context API
+
+Backend
+
+Firebase Auth
+
+Firebase Firestore
+
+Firestore Queries (where, orderBy)
+
+Firestore Aggregation (getCountFromServer)
+
+Sherbimet Firestore (services/firestoreService.js)
+
+Përfshin:
+
+Për Sendet e Humbura
+
+addLostItem()
+
+getUserLostItems()
+
+getUserLostItemsCount()
+
+deleteItem()
+
+Për Sendet e Gjetura
+
+addFoundItem()
+
+getUserFoundItems()
+
+getUserFoundItemsCount()
+
+Përputhjet
+
+getPotentialMatches()
+
+getPotentialMatchesOptimized()
+
+Algoritmi përdor funksione ndihmëse:
+
+calculateMatchScore()
+
+stringSimilarity()
+
+checkLocationSimilarity()
+
+getMatchReason()
+
+📁 Struktura e Projektit
+FAZA2-PROGRAMIM/
+ ├─ app/
+ │   ├─ _layout.jsx
+ │   ├─ about.jsx
+ │   ├─ add-Item.jsx
+ │   ├─ found-Item.jsx
+ │   ├─ login.jsx
+ │   ├─ matches.jsx
+ │   ├─ settings.jsx
+ │   └─ index.jsx
+ │
+ ├─ assets/
+ │   ├─ adaptive-icon.png
+ │   ├─ favicon.png
+ │   ├─ icon.png
+ │   ├─ no-image.jpg
+ │   └─ splash-icon.png
+ │
+ ├─ components/
+ │   ├─ CategorySelector.jsx
+ │   ├─ ItemCard.jsx
+ │   └─ NavBar.jsx
+ │
+ ├─ config/
+ │   └─ firebase.js
+ │
+ ├─ contexts/
+ │   ├─ AuthContext.jsx
+ │   └─ ThemeContext.jsx
+ │
+ ├─ services/
+ │   ├─ firestoreService.js
+ │   └─ weatherService.js
+ │
+ ├─ app.json
+ ├─ index.js
+ ├─ package.json
+ ├─ package-lock.json
+ └─ README.md
+
+
+✅ Përfundim
+
+Aplikacioni ofron një sistem të plotë Lost & Found, duke përfshirë raportim, menaxhim, krahasim të të dhënave dhe ndërfaqe moderne me temë dinamike.
+
+Anetaret e grupit:
 - Aurela Hasanaj
 - Delvina Elshani
 - Jon Rexha
