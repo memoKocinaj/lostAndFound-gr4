@@ -76,11 +76,18 @@ export const getUserLostItems = async (userId) => {
     throw error;
   }
 };
-
-
-
-
-
+export const getAllFoundItems = async () => {
+  try {
+    const q = query(collection(db, "foundItems"), orderBy("createdAt", "desc"));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+  } catch (error) {
+    throw error;
+  }
+};
 export const deleteItem = async (collectionName, itemId) => {
   try {
     await deleteDoc(doc(db, collectionName, itemId));
