@@ -13,9 +13,19 @@ import {
   ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "../contexts/AuthContext";
+import { useTheme } from "../contexts/ThemeContext";
 import CategorySelector from "../components/CategorySelector";
 import ItemCard from "../components/ItemCard";
 import NavBar from "../components/NavBar";
+import {
+  addLostItem,
+  getUserLostItems,
+  deleteItem,
+} from "../services/firestoreService";
+import * as ImagePicker from "expo-image-picker";
+import * as Location from "expo-location";
 
 export default function AddItemScreen() {
   const [itemName, setItemName] = useState("");
@@ -23,6 +33,150 @@ export default function AddItemScreen() {
   const [lastSeenLocation, setLastSeenLocation] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [lostItems, setLostItems] = useState([]);
+const [loading, setLoading] = useState(false);
+
+    const [imageUri, setImageUri] = useState(null);
+
+  const [locationCoords, setLocationCoords] = useState(null);
+
+  const { user } = useAuth();
+  const theme = useTheme();
+
+  useEffect(() => {
+    if (user) {
+      loadLostItems();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    (async () => {
+      await ImagePicker.requestCameraPermissionsAsync();
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+      await Location.requestForegroundPermissionsAsync();
+    })();
+  }, []);
+
+  const loadLostItems = async () => {
+    setLoading(true);
+    try {
+      const items = await getUserLostItems(user.uid);
+      setLostItems(items);
+    } catch (error) {
+      console.error("❌ ERROR loading lost items:", error);
+      Alert.alert("Error", "Failed to load lost items: " + error.message);
+    }
+    setLoading(false);
+  };
+
+  const handleTakePhoto = async () => {
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        quality: 0.7,
+        aspect: [4, 3],
+      });
+
+      if (!result.canceled && result.assets[0].uri) {
+        setImageUri(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.log("Camera error:", error);
+      Alert.alert("Error", "Failed to open camera");
+    }
+  };
+
+  const handlePickImage = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        allowsEditing: true,
+        quality: 0.7,
+        aspect: [4, 3],
+      });
+
+      if (!result.canceled && result.assets[0].uri) {
+        setImageUri(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.log("Gallery error:", error);
+      Alert.alert("Error", "Failed to open gallery");
+    }
+  };
+
+  const getCurrentLocation = async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Permission denied", "Location permission is required");
+        return;
+      }
+
+      setLoading(true);
+
+      const current = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+
+      let addressText = "";
+
+      try {
+        const reverse = await Location.reverseGeocodeAsync(current.coords);
+
+        if (reverse && reverse.length > 0) {
+          const addr = reverse[0];
+
+          const addressParts = [];
+          if (addr.street && addr.street.trim()) addressParts.push(addr.street);
+          if (addr.name && addr.name.trim()) addressParts.push(addr.name);
+          if (addr.city && addr.city.trim()) addressParts.push(addr.city);
+          if (addr.region && addr.region.trim()) addressParts.push(addr.region);
+
+          addressText = addressParts.join(", ");
+
+          if (!addressText.trim() || addressText.trim().length < 5) {
+            addressText = `${current.coords.latitude.toFixed(
+              5
+            )}, ${current.coords.longitude.toFixed(5)}`;
+          }
+        } else {
+          addressText = `${current.coords.latitude.toFixed(
+            5
+          )}, ${current.coords.longitude.toFixed(5)}`;
+        }
+      } catch (reverseError) {
+        console.log(
+          "Reverse geocode completely failed, using coordinates only"
+        );
+
+        addressText = `${current.coords.latitude.toFixed(
+          5
+        )}, ${current.coords.longitude.toFixed(5)}`;
+      }
+
+      setLastSeenLocation(addressText);
+      setLocationCoords({
+        latitude: current.coords.latitude,
+        longitude: current.coords.longitude,
+      });
+
+      Alert.alert(
+        "Location Set",
+        "Current location has been set successfully!"
+      );
+    } catch (error) {
+      console.log("Location error:", error);
+
+      if (error.message.includes("getCountryCode")) {
+        Alert.alert(
+          "Location Set",
+          "Coordinates saved successfully! Address lookup unavailable in your area."
+        );
+      } else {
+        Alert.alert("Error", "Failed to get location: " + error.message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const addItem = () => {
     if (itemName.trim() === "") {
@@ -243,4 +397,5 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
+
 
